@@ -1,0 +1,21 @@
+# Local secrets
+.env
+.env.*
+!.env.sample
+
+# OS and editor state
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Java/Maven build output
+applytabai-api/target/
+applytabai-api/.mvn/timing.properties
+
+# Runtime/log output
+logs/
+*.log
+
+# Local language-server workspace
+.jdtls-workspace/
