@@ -35,9 +35,6 @@ services:
       SPRING_DATASOURCE_PASSWORD: password
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_JPA_SHOW_SQL: "true"
-      SPRING_AI_MODEL_CHAT: ${SPRING_AI_MODEL_CHAT:-none}
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      OPENAI_CHAT_MODEL: ${OPENAI_CHAT_MODEL:-gpt-4o-mini}
     ports:
       - "${SPRING_BOOT_PORT:-8080}:${SPRING_BOOT_PORT:-8080}"
     depends_on:
