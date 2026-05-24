@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+app_dir="$repo_root/applytabai-api"
+cd "$app_dir" || exit 0
+node scripts/git/update-worktree-env.mjs
