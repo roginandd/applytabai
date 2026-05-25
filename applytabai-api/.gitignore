@@ -50,6 +50,9 @@ build/
 logs/
 *.log
 
+# Local uploaded files
+storage/
+
 # OS
 .DS_Store
 Thumbs.db
