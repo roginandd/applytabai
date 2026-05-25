@@ -1,6 +1,9 @@
 package com.applytabai.api.common.exception;
 
 public enum ErrorCode {
+	AUTHENTICATION_FAILED,
+	ACCESS_DENIED,
+	TOKEN_INVALID,
 	VALIDATION_FAILED,
 	RESOURCE_NOT_FOUND,
 	CONFLICT,

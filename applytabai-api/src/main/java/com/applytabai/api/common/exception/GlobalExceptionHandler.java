@@ -6,6 +6,8 @@ import com.applytabai.api.common.response.ApiResponse;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -44,6 +46,27 @@ public class GlobalExceptionHandler {
 		return ResponseEntity
 				.status(HttpStatus.BAD_REQUEST)
 				.body(ApiResponse.failure(ErrorCode.VALIDATION_FAILED.name(), message));
+	}
+
+	@ExceptionHandler(IllegalArgumentException.class)
+	public ResponseEntity<ApiResponse<Void>> handleIllegalArgument(IllegalArgumentException exception) {
+		return ResponseEntity
+				.status(HttpStatus.BAD_REQUEST)
+				.body(ApiResponse.failure(ErrorCode.VALIDATION_FAILED.name(), exception.getMessage()));
+	}
+
+	@ExceptionHandler(AuthenticationException.class)
+	public ResponseEntity<ApiResponse<Void>> handleAuthentication(AuthenticationException exception) {
+		return ResponseEntity
+				.status(HttpStatus.UNAUTHORIZED)
+				.body(ApiResponse.failure(ErrorCode.AUTHENTICATION_FAILED.name(), "Authentication is required"));
+	}
+
+	@ExceptionHandler(AccessDeniedException.class)
+	public ResponseEntity<ApiResponse<Void>> handleAccessDenied(AccessDeniedException exception) {
+		return ResponseEntity
+				.status(HttpStatus.FORBIDDEN)
+				.body(ApiResponse.failure(ErrorCode.ACCESS_DENIED.name(), "Access is denied"));
 	}
 
 	@ExceptionHandler(Exception.class)
