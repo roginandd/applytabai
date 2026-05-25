@@ -1,7 +1,12 @@
 package com.applytabai.api.database;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
+import java.util.Properties;
 import java.util.UUID;
 
 import com.applytabai.api.applications.domain.ApplicationStatus;
@@ -27,6 +32,8 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,6 +47,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 		"spring.jpa.open-in-view=false"
 })
 class DatabaseConnectionSmokeTest {
+
+	private static final Path LOCAL_ENV = Path.of(".env");
 
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
@@ -64,6 +73,67 @@ class DatabaseConnectionSmokeTest {
 
 	@Autowired
 	private JobPreferenceRepository jobPreferenceRepository;
+
+	@DynamicPropertySource
+	static void localDatabaseProperties(DynamicPropertyRegistry registry) {
+		if (!Files.isRegularFile(LOCAL_ENV)) {
+			return;
+		}
+
+		Properties properties = loadLocalEnv();
+
+		registerIfPresent(registry, properties, "spring.datasource.url", "SPRING_DATASOURCE_URL");
+		registerIfPresent(registry, properties, "spring.datasource.username", "SPRING_DATASOURCE_USERNAME");
+		registerIfPresent(registry, properties, "spring.datasource.password", "SPRING_DATASOURCE_PASSWORD");
+	}
+
+	private static Properties loadLocalEnv() {
+		Properties properties = new Properties();
+		try {
+			for (String rawLine : Files.readAllLines(LOCAL_ENV, StandardCharsets.UTF_8)) {
+				String line = rawLine.trim();
+				if (line.isEmpty() || line.startsWith("#")) {
+					continue;
+				}
+				if (line.startsWith("export ")) {
+					line = line.substring("export ".length()).trim();
+				}
+				int separator = line.indexOf('=');
+				if (separator <= 0) {
+					continue;
+				}
+				String key = line.substring(0, separator).trim();
+				String value = unquote(line.substring(separator + 1).trim());
+				properties.setProperty(key, value);
+			}
+			return properties;
+		} catch (IOException exception) {
+			throw new IllegalStateException("Could not load local database smoke-test configuration", exception);
+		}
+	}
+
+	private static String unquote(String value) {
+		if (value.length() >= 2) {
+			char first = value.charAt(0);
+			char last = value.charAt(value.length() - 1);
+			if ((first == '"' && last == '"') || (first == '\'' && last == '\'')) {
+				return value.substring(1, value.length() - 1);
+			}
+		}
+		return value;
+	}
+
+	private static void registerIfPresent(
+			DynamicPropertyRegistry registry,
+			Properties properties,
+			String springProperty,
+			String envProperty
+	) {
+		String value = properties.getProperty(envProperty);
+		if (value != null && !value.isBlank()) {
+			registry.add(springProperty, () -> value);
+		}
+	}
 
 	@Test
 	void connectsToConfiguredDatabaseAndPersistsDomainGraph() {
