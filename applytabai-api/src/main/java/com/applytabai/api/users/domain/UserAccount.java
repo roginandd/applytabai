@@ -48,6 +48,18 @@ public class UserAccount extends AuditableEntity {
 	@Column(name = "provider_id", length = 255)
 	private String providerId;
 
+	@Size(max = 255)
+	@Column(name = "password_hash", length = 255)
+	private String passwordHash;
+
+	@NotNull
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false, length = 50)
+	private UserRole role = UserRole.USER;
+
+	@Column(nullable = false)
+	private boolean enabled = true;
+
 	private UserAccount(String email, String fullName, AuthProvider provider, String providerId) {
 		changeEmail(email);
 		rename(fullName);
@@ -59,6 +71,15 @@ public class UserAccount extends AuditableEntity {
 	 */
 	public static UserAccount register(String email, String fullName, AuthProvider provider, String providerId) {
 		return new UserAccount(email, fullName, provider, providerId);
+	}
+
+	/**
+	 * Registers a local email/password user with a pre-encoded password hash.
+	 */
+	public static UserAccount registerLocal(String email, String fullName, String passwordHash) {
+		UserAccount user = new UserAccount(email, fullName, AuthProvider.LOCAL, null);
+		user.changePasswordHash(passwordHash);
+		return user;
 	}
 
 	/**
@@ -81,5 +102,20 @@ public class UserAccount extends AuditableEntity {
 	public void updateProvider(AuthProvider provider, String providerId) {
 		this.provider = DomainGuard.requireNonNull(provider, "provider");
 		this.providerId = DomainGuard.normalizeOptional(providerId);
+	}
+
+	/**
+	 * Replaces the encoded local password hash.
+	 */
+	public void changePasswordHash(String passwordHash) {
+		this.passwordHash = DomainGuard.requireNotBlank(passwordHash, "passwordHash");
+	}
+
+	public boolean hasLocalPassword() {
+		return passwordHash != null && !passwordHash.isBlank();
+	}
+
+	public void disable() {
+		this.enabled = false;
 	}
 }
