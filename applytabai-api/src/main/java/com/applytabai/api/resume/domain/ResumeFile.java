@@ -7,6 +7,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -23,7 +24,13 @@ import lombok.NoArgsConstructor;
  */
 @Getter
 @Entity
-@Table(name = "resume_files")
+@Table(
+		name = "resume_files",
+		indexes = {
+				@Index(name = "idx_resume_files_user", columnList = "user_id"),
+				@Index(name = "idx_resume_files_user_default", columnList = "user_id,is_default")
+		}
+)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ResumeFile extends AuditableEntity {
 
